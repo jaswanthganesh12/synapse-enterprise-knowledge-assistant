@@ -1,5 +1,6 @@
 from pathlib import Path
-
+from fastapi import BackgroundTasks
+from app.services.ingestion_service import process_document
 from fastapi import (
     APIRouter,
     Depends,
@@ -40,6 +41,7 @@ ALLOWED_MIME_TYPES = {
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -85,6 +87,11 @@ async def upload_document(
         stored_filename=stored_filename,
         file_path=file_path,
     )
+
+    background_tasks.add_task(
+    process_document,
+    document.id,
+)
 
     return {
         "message": "Document uploaded successfully",
