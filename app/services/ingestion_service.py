@@ -1,8 +1,9 @@
-import time
-
+from app.chunking.text_chunker import chunk_document
 from app.core.enums import DocumentStatus
 from app.db.session import SessionLocal
 from app.models.document import Document
+from app.parsers.pdf_parser import parse_pdf
+from app.repositories.document_chunk_repository import create_chunks
 
 
 def process_document(document_id: int) -> None:
@@ -21,9 +22,29 @@ def process_document(document_id: int) -> None:
         document.status = DocumentStatus.PROCESSING
         db.commit()
 
-        # Temporary processing simulation.
-        # Real document parsing will replace this.
-        time.sleep(2)
+        if document.source_type != "PDF":
+            raise ValueError(
+                f"Unsupported source type: {document.source_type}"
+            )
+
+        parsed_document = parse_pdf(
+            document.file_path
+        )
+
+        chunks = chunk_document(
+            parsed_document
+        )
+
+        if not chunks:
+            raise ValueError(
+                "No text could be extracted from document"
+            )
+
+        create_chunks(
+            db=db,
+            document_id=document.id,
+            chunks=chunks,
+        )
 
         document.status = DocumentStatus.INDEXED
         db.commit()

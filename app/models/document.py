@@ -1,4 +1,7 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from app.models.document_chunk import DocumentChunk
 
 from sqlalchemy import (
     DateTime,
@@ -69,3 +72,8 @@ class Document(Base):
     stored_filename: Mapped[str] = mapped_column(
     String(255)
    )
+
+    chunks: Mapped[list["DocumentChunk"]] = relationship(
+    back_populates="document",
+    cascade="all, delete-orphan",
+    )
