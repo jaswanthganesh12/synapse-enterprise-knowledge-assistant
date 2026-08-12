@@ -1,10 +1,9 @@
 from sqlalchemy.orm import Session
 
 from app.models.document import Document
-from app.repositories.document_repository import create_document,update_document_file
 
 
-def create_document_record(
+def create_document(
     db: Session,
     title: str,
     original_filename: str,
@@ -15,8 +14,7 @@ def create_document_record(
     uploaded_by: int,
 ) -> Document:
 
-    return create_document(
-        db=db,
+    document = Document(
         title=title,
         original_filename=original_filename,
         stored_filename=stored_filename,
@@ -24,9 +22,16 @@ def create_document_record(
         mime_type=mime_type,
         source_type=source_type,
         uploaded_by=uploaded_by,
+        status="UPLOADED",
     )
 
-def attach_file_to_document(
+    db.add(document)
+    db.commit()
+    db.refresh(document)
+
+    return document
+
+def update_document_file(
     db: Session,
     document: Document,
     original_filename: str,
@@ -34,10 +39,11 @@ def attach_file_to_document(
     file_path: str,
 ) -> Document:
 
-    return update_document_file(
-        db=db,
-        document=document,
-        original_filename=original_filename,
-        stored_filename=stored_filename,
-        file_path=file_path,
-    )
+    document.original_filename = original_filename
+    document.stored_filename = stored_filename
+    document.file_path = file_path
+
+    db.commit()
+    db.refresh(document)
+
+    return document
