@@ -48,6 +48,8 @@ def hybrid_search(
             "chunk_index": result.payload["chunk_index"],
             "page_number": result.payload["page_number"],
             "vector_score": result.score,
+            "filename": result.payload.get("filename"),
+            "source_type": result.payload.get("source_type"),
         }
 
     for rank, (chunk, score) in enumerate(
