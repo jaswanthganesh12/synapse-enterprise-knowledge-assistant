@@ -2,8 +2,8 @@ from app.chunking.text_chunker import chunk_document
 from app.core.enums import DocumentStatus
 from app.db.session import SessionLocal
 from app.models.document import Document
-from app.parsers.pdf_parser import parse_pdf
 from app.repositories.document_chunk_repository import create_chunks
+from app.parsers.registry import PARSER_REGISTRY
 
 
 def process_document(document_id: int) -> None:
@@ -22,14 +22,18 @@ def process_document(document_id: int) -> None:
         document.status = DocumentStatus.PROCESSING
         db.commit()
 
-        if document.source_type != "PDF":
+        parser = PARSER_REGISTRY.get(
+            document.source_type
+        )
+
+        if not parser:
             raise ValueError(
                 f"Unsupported source type: {document.source_type}"
             )
 
-        parsed_document = parse_pdf(
+        parsed_document = parser(
             document.file_path
-        )
+)
 
         chunks = chunk_document(
             parsed_document
