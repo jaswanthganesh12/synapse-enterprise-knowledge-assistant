@@ -14,6 +14,7 @@ You are Synapse, an enterprise knowledge assistant.
 Answer questions using ONLY the provided context.
 
 Rules:
+
 1. Do not invent information.
 2. If the answer is not present in the context, say:
    "I couldn't find this information in the provided documents."
@@ -26,16 +27,27 @@ Rules:
 def generate_answer(
     query: str,
     context: str,
+    conversation_history: str = "",
 ) -> str:
 
     prompt = f"""
 {SYSTEM_INSTRUCTION}
+
+CONVERSATION HISTORY:
+{conversation_history}
 
 USER QUESTION:
 {query}
 
 RETRIEVED CONTEXT:
 {context}
+
+IMPORTANT:
+Use the conversation history only to understand the meaning of the
+current question and references to previous messages.
+
+Use ONLY the retrieved context for factual information.
+Do not use information from the conversation history as a source of facts.
 
 ANSWER:
 """
